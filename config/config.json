@@ -1,0 +1,6 @@
+{
+    "host": "service-sql",
+    "user": "db_user",
+    "password": "db_user_password",
+    "database": "chat_system"
+}

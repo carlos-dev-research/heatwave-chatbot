@@ -1,0 +1,7 @@
+# Flask web framework
+Flask
+
+# Other dependencies
+blinker
+bcrypt
+mysql-connector-python
