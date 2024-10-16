@@ -212,7 +212,7 @@ class session:
         
         # Unpack the chat history and convert form json to dictionary
         try:
-            text = json.loads(results[0][0][0])
+            text = json.loads(results[0][0][0])['text']
         except:
             raise ValueError("Invalid Data")
 
