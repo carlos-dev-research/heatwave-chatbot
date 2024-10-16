@@ -121,8 +121,8 @@ def chat():
             title= ss.gen_text(prompt)
             print(title)
             conversation_id = ss.create_conversation(title)
-        else:
-            chat_response, documents = ss.chat_db(conversation_id,message)
+        
+        chat_response, documents = ss.chat_db(conversation_id,message)
     except:
         return jsonify({'error':'Internal server error', 'status':500}),500
     
