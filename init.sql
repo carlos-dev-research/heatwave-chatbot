@@ -429,7 +429,7 @@ proc_label: BEGIN
     DECLARE flag_conversation_id VARCHAR(36);
     DECLARE flag_title VARCHAR(50);
     DECLARE flag_chat_content JSON;
-    DECLARE created_at TIMESTAMP;
+    DECLARE flag_created_at TIMESTAMP;
 
     -- Handle for data not found
     DECLARE no_data_found TINYINT DEFAULT 0;
