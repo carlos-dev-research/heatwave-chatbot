@@ -479,6 +479,7 @@ CREATE PROCEDURE CreateConversation (
 )
 BEGIN
     DECLARE retrieved_user_id INT;
+    DECLARE in_chat_content JSON;
 
     -- Verify the token and email
     CALL VerifyToken(in_email, in_token, out_token_valid);
