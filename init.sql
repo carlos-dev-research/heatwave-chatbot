@@ -1,6 +1,6 @@
 -- Define variables for user, host, and password
 SET @db_user = 'db_user';                -- The MySQL username
-SET @db_user_password = 'db_user_password';  -- The MySQL user's password
+SET @db_user_password = 'Db_user_password_1234#';  -- The MySQL user's password
 SET @db_host = '%';                      -- The host for user access ('%' allows access from any host)
 
 
