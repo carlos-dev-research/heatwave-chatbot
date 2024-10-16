@@ -8,25 +8,39 @@ SET @db_host = '%';                      -- The host for user access ('%' allows
 CREATE DATABASE IF NOT EXISTS embeddings_db;
 USE embeddings_db;
 
--- Check if the table exists
-SET @table_exists = (SELECT COUNT(*) 
-                     FROM information_schema.tables 
-                     WHERE table_schema = DATABASE() 
-                     AND table_name = 'embedding_v2');
+DELIMITER $$
 
--- If the table does not exist, load the vector store
-IF @table_exists = 0 THEN
-    CALL sys.VECTOR_STORE_LOAD(
+CREATE PROCEDURE load_or_refresh_vector_store()
+BEGIN
+    DECLARE table_exists INT DEFAULT 0;
+
+    -- Check if the table exists
+    SELECT COUNT(*) INTO table_exists 
+    FROM information_schema.tables 
+    WHERE table_schema = DATABASE() 
+    AND table_name = 'embedding_v2';
+
+    -- If the table does not exist, load the vector store
+    IF table_exists = 0 THEN
+        CALL sys.VECTOR_STORE_LOAD(
+            'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
+            '{"table_name": "embedding_v2"}'
+        );
+        SELECT 'Vector store loaded as the table did not exist' AS status;
+    ELSE
+        SELECT 'Table exists, no need to load vector store' AS status;
+    END IF;
+
+    -- Refresh the vector store
+    CALL sys.VECTOR_STORE_REFRESH(
         'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
         '{"table_name": "embedding_v2"}'
     );
-END IF;
+    SELECT 'Vector store refreshed' AS status;
+END$$
 
--- Refresh the vector store
-CALL sys.VECTOR_STORE_REFRESH(
-    'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
-    '{"table_name": "embedding_v2"}'
-);
+DELIMITER ;
+
 
 
 -- Connect as root and create the database if it doesn't exist
