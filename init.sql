@@ -7,7 +7,27 @@ SET @db_host = '%';                      -- The host for user access ('%' allows
 -- Create database embeddings
 CREATE DATABASE IF NOT EXISTS embeddings_db;
 USE embeddings_db;
-call sys.VECTOR_STORE_LOAD('oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', '{"table_name": "embedding_v1"}');
+
+DO
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_schema = DATABASE()
+        AND table_name = 'embedding_v2'
+    ) THEN
+        -- Create vector store if it doesn't exist
+        call sys.VECTOR_STORE_LOAD(
+            'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
+            '{"table_name": "embedding_v2"}'
+        );
+    END IF;
+    
+    -- Refresh vector store regardless of whether it was just created
+    call sys.VECTOR_STORE_REFRESH(
+        'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
+        '{"table_name": "embedding_v2"}'
+    );
+END;
 
 -- Connect as root and create the database if it doesn't exist
 CREATE DATABASE IF NOT EXISTS chat_system;
@@ -452,7 +472,7 @@ BEGIN
         "model_options", JSON_OBJECT("model_id", "mistral-7b-instruct-v1"),
         "tables", JSON_ARRAY(
             JSON_OBJECT(
-                "table_name", "`embeddings_v1_pdf`",
+                "table_name", "`embeddings_v2_pdf`",
                 "schema_name", "`embeddings_db`"
             )
         )
