@@ -611,6 +611,15 @@ PREPARE stmt FROM @grant_execute_procedure;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+SET @grant_execute_procedure = CONCAT('GRANT EXECUTE ON PROCEDURE chat_system.genText TO ''', @db_user, '''@''', @db_host, ''';');
+PREPARE stmt FROM @grant_execute_procedure;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @grant_execute_procedure = CONCAT('GRANT EXECUTE ON PROCEDURE chat_system.chat TO ''', @db_user, '''@''', @db_host, ''';');
+PREPARE stmt FROM @grant_execute_procedure;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- Flush privileges to ensure the changes take effect
 FLUSH PRIVILEGES;

@@ -9,7 +9,7 @@ myconfig = load_config()
 # Create Web App
 app = Flask(__name__)
 app.mydb = db(myconfig)
-app.slm = SLM(model_name='llama3.2')
+
 register_routes(app)
 
 
