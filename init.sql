@@ -346,7 +346,7 @@ proc_label: BEGIN
         LEAVE proc_label;
     END IF;
 
-    SELECT sys.ML_GENERATE(in_prompt, JSON_OBJECT("task", "generation", "model_id", "mistral-7b-instruct-v1", "language", "en"));
+    SELECT sys.ML_GENERATE(in_prompt, JSON_OBJECT("task", "generation", "model_id", "mistral-7b-instruct-v1"));
 
     SET out_op_status = TRUE;
 
