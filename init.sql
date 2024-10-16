@@ -299,6 +299,10 @@ CREATE PROCEDURE chat (
     OUT out_op_status BOOLEAN           -- Output flag indicating if the chat history was read successfully 
 )
 proc_label: BEGIN
+    -- Handle for data not found
+    DECLARE no_data_found TINYINT DEFAULT 0;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET no_data_found = 1;
+
     -- Verify the token and email
     CALL VerifyToken(in_email, in_token, out_token_valid);
 
@@ -306,10 +310,6 @@ proc_label: BEGIN
         SET out_op_status = FALSE;
         LEAVE proc_label;
     END IF;
-
-    -- Handle for data not found
-    DECLARE no_data_found TINYINT DEFAULT 0;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET no_data_found = 1;
 
     -- Look for chat_option in chat_content
     SELECT chat_content INTO @chat_options
@@ -425,6 +425,16 @@ CREATE PROCEDURE ReadConversation(
     OUT out_op_status BOOLEAN          -- Output flag indicating if the chat history was created successfully
 )
 proc_label: BEGIN
+    -- Declare holders
+    DECLARE flag_conversation_id VARCHAR(36);
+    DECLARE flag_title VARCHAR(50);
+    DECLARE flag_chat_content JSON;
+    DECLARE created_at TIMESTAMP;
+
+    -- Handle for data not found
+    DECLARE no_data_found TINYINT DEFAULT 0;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET no_data_found = 1;
+
     -- Verify the token and email
     CALL VerifyToken(in_email, in_token, out_token_valid);
 
@@ -433,17 +443,9 @@ proc_label: BEGIN
         LEAVE proc_label;
     END IF;
 
-    -- Handle for data not found
-    DECLARE no_data_found TINYINT DEFAULT 0;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET no_data_found = 1;
+    
 
     -- Look for conversation
-    -- Declare holders
-    DECLARE flag_conversation_id VARCHAR(36);
-    DECLARE flag_title VARCHAR(50);
-    DECLARE flag_chat_content JSON;
-    DECLARE created_at TIMESTAMP;
-    
     -- Retrieve values 
     SELECT c.conversation_id, c.title, c.chat_content, c.created_at
     INTO flag_conversation_id, flag_title, flag_chat_content, flag_created_at
