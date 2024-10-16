@@ -111,10 +111,23 @@ export async function sendMessage(user, token, message, conversationId = null) {
             throw new Error('Failed to send Message.');
         }
         const data = await response.json();
-        addIncomingMessage(data.chat_response, incomingMessage, '');
 
-        return data.chat_response, data.documents;  // Assumed response structure
-
+        if (data.conversation_id && data.chat_response){
+            if (conversationId == null){
+                setConversationId(data.conversation_id)
+            }
+            else if (conversationId != data.conversation_id){
+                return null
+            }
+            console.log(data.documents)
+            addIncomingMessage(data.chat_response, incomingMessage, '');
+            return data.chat_response, data.documents;
+            }
+            
+        else{
+            return null
+            }
+        
     } catch (error) {
         console.error('Error sending Message:', error);
         return null;

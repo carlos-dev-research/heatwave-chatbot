@@ -126,4 +126,4 @@ def chat():
     except:
         return jsonify({'error':'Internal server error', 'status':500}),500
     
-    return jsonify({'chat_response':chat_response, 'documents':documents})
+    return jsonify({'chat_response':chat_response, 'documents':documents, 'conversation_id':conversation_id})

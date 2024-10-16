@@ -277,14 +277,11 @@ class session:
             print(chat_response)
             print('\n\n')
             print("Documents")
-            doc = results[1][0][0]
-            print(type(doc))
-            if doc:
-                print(doc)
-                documents = json.loads(doc)
-                print(documents)
+            docs_json = results[1][0][0]
+            if docs_json:
+                documents = json.loads(docs_json)
             else:
-                documents = [{}]
+                documents = None
         except:
             raise ValueError("Invalid Data")
 
