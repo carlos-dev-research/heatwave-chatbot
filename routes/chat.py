@@ -113,7 +113,7 @@ def chat():
     try:
         if conversation_id is None:
             template="""Your only task is to create headline for the following text, the complete Output of the text should be less than 30 characters
-            Text:{context}\n\n
+            Text:{}\n\n
             Headline: 
             """
             prompt = template.format(message)
