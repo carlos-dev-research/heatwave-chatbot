@@ -277,10 +277,10 @@ class session:
             print(chat_response)
             print('\n\n')
             print("Documents")
-            print(results[0][0])
-            if results[0][1][0]:
+            print(results[1][0][0])
+            if results[1][0][0]:
                 print(results[0][1][0])
-                documents = json.loads(results[0][1][0])
+                documents = json.loads(results[1][0][0])
                 print(documents)
             else:
                 documents = [{}]
