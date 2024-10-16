@@ -1,6 +1,6 @@
 {
-    "host": "service-sql",
-    "user": "db_user",
-    "password": "Db_user_password_1234#",
+    "host": "10.0.1.96",
+    "user": "admin",
+    "password": "Heatwave1234#",
     "database": "chat_system"
 }
