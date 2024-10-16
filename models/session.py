@@ -176,13 +176,11 @@ class session:
             IN in_email VARCHAR(255),             -- User's email for validation
             IN in_token VARCHAR(512),             -- User's token for validation
             IN in_title VARCHAR(50),              -- Title for the chat content
-            IN in_chat_content JSON,              -- Chat content in JSON format
             OUT out_conversation_id VARCHAR(36),  -- Output string for the conversation ID
             OUT out_token_valid BOOLEAN,          -- Output flag indicating if the token is valid
             OUT out_op_status BOOLEAN             -- Output flag indicating if the chat history was created successfully
         """
-        chat_content = None
-        params, results = self.mydb.call_proc("CreateConversation",[self.user, self.token, title, chat_content, None, None, None])
+        params, results = self.mydb.call_proc("CreateConversation",[self.user, self.token, title, None, None, None])
         conversation_id = params[-3]
         token_valid = params[-2]
         op_status = params[-1]
@@ -193,8 +191,34 @@ class session:
             raise RuntimeError("Unable to read chat history")
         
         return conversation_id
+    
+    def gen_text(self, prompt:str) -> str:
+        """
+        Procedure: genText
+        Parameters:
+            IN in_email VARCHAR(255),           -- User's email for validation
+            IN in_token VARCHAR(512),           -- User's token for validation
+            IN in_prompt TEXT,                  -- Description to generate text
+            OUT out_token_valid BOOLEAN,        -- Output flag indicating if the token is valid
+            OUT out_op_status BOOLEAN           -- Output flag indicating if the chat history was read successfully 
+        """
+        params, results = self.mydb.call_proc("genText",[self.user,self.token,prompt,None,None])
+        token_valid = params[-2]
+        op_status = params[-1]
+        if not token_valid:
+            raise ValueError("Token used is not valid")
+        elif not op_status:
+            raise RuntimeError("Unable to gen Text")
+        
+        # Unpack the chat history and convert form json to dictionary
+        try:
+            text = json.loads(results[0][0][0])
+        except:
+            raise ValueError("Invalid Data")
 
-    def read_conversation(self,conversation_id:str) -> List[Dict[str,str]]:
+        return text
+
+    def read_conversation(self,conversation_id:str) -> Dict[str,List[Dict[str,str]]]:
         """
         Procedure: ReadConversation
         Parameters:
@@ -225,28 +249,35 @@ class session:
 
         return chat_content
     
-    def update_conversation(self, conversation_id:str, chat_content:List[Dict[str,str]]):
+    def chat_db(self, conversation_id:str, new_message:str) -> Tuple[str,List[Dict[str,str]]]:
         """
-        Procedure: UpdateConversation
+        Procedure: chat
         Parameters:
             IN in_email VARCHAR(255),           -- User's email for validation
             IN in_token VARCHAR(512),           -- User's token for validation
-            IN in_conversation_id VARCHAR(36),  -- Unique conversation ID
-            IN in_updated_chat_content JSON,    -- Updated chat content in JSON format
+            IN in_conversation_id VARCHAR(36),  -- Identifier of the conversation
+            IN in_new_message TEXT,             -- User last prompt
             OUT out_token_valid BOOLEAN,        -- Output flag indicating if the token is valid
-            OUT out_op_status BOOLEAN           -- Output flag indicating if the chat history was updated successfully
+            OUT out_op_status BOOLEAN           -- Output flag indicating if the chat history was read successfully 
         """
-        json_chat_content = json.dumps(chat_content)
-        params, results = self.mydb.call_proc("UpdateConversation",[self.user, self.token, conversation_id, json_chat_content, None, None])
+        params, results = self.mydb.call_proc("chat",[self.user, self.token, conversation_id, new_message, None, None])
         token_valid = params[-2]
         op_status = params[-1]
         if not token_valid:
             raise ValueError("Token used is not valid")
         elif not op_status:
-            raise RuntimeError("Unable to Update conversation")
+            raise RuntimeError("Unable to chat")
         
+        # Unpack the chat history and convert form json to dictionary
+        try:
+            chat_response = results[0][0][0]
+            documents = json.loads(results[0][0][1])
+        except:
+            raise ValueError("Invalid Data")
+
+        return chat_response, documents
         
-    def delete_conversation(self, conversation_id):
+    def delete_conversation(self, conversation_id:str):
         """
         Procedure: DeleteConversation
         Parameters:
@@ -262,7 +293,7 @@ class session:
         if not token_valid:
             raise ValueError("Token used is not valid")
         elif not op_status:
-            raise RuntimeError("Unable to read conversation")
+            raise RuntimeError("Unable to delete conversation")
         
 
     

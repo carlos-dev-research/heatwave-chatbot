@@ -88,8 +88,8 @@ def delete_conversation():
     return jsonify({'message': f'Conversation deleted successfully'}), 200
 
 
-@chat_bp.route('/stream-send', methods=['GET'])
-def stream_send():
+@chat_bp.route('/chat', methods=['GET'])
+def chat():
     """
     Endpoint to talk to the LM on Stream
     """
@@ -112,42 +112,16 @@ def stream_send():
     # Handle conversation creation or updating
     try:
         if conversation_id is None:
-            conversation = [{'role': 'user', 'content': message}]
-            title = current_app.slm.create_title(message)
-            conversation_id = ss.create_conversation(title,conversation)
+            template="""Your only task is to create headline for the following text, the complete Output of the text should be less than 30 characters
+            Text:{context}\n\n
+            Headline: 
+            """
+            prompt = template.format(message)
+            title= ss.gen_text(prompt)
+            conversation_id = ss.create_conversation(title)
         else:
-            conversation = ss.read_conversation(conversation_id)
-            conversation.append({'role': 'user', 'content': message})
-            ss.update_conversation(conversation_id,conversation)
+            chat_response, documents = ss.chat_db(conversation_id,message)
     except:
         return jsonify({'error':'Internal server error', 'status':500}),500
-
-
-    # Streaming response
-    def generate():
-        # Send the conversation_id as an event for the stream
-        yield f"event: conversation_id\ndata: {conversation_id}\n\n"
-
-        try:
-            # Call Ollama with streaming enabled and stream chat response
-            stream = current_app.slm.chat(chat_history=conversation, data_folder=os.path.join(os.getcwd(),'data'), is_stream=True)
-            out=""
-            for chunk in stream.response_gen:
-                out+= chunk
-                data = json.dumps({"response": chunk, "endOfMessage": False})
-                yield f"event: chat\ndata: {data}\n\n"   
-            
-            # Add response from the model to conversation and save it
-            conversation.append({'role': 'assistant', 'content': out})
-            ss.update_conversation(conversation_id,conversation)
-
-            # Send last message
-            end_message = json.dumps({"endOfMessage": True})
-            yield f"event: chat\ndata: {end_message}\n\n"
-        
-        except Exception as e:
-            error = json.dumps({'error':'Internal server error', 'status':500})
-            yield f"event: error\ndata: {error}\n\n"
-            return # Close conection
-        
-    return Response(stream_with_context(generate()), content_type='text/event-stream')
+    
+    return jsonify({'chat_response':chat_response, 'documents':documents})

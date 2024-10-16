@@ -3,6 +3,12 @@ SET @db_user = 'db_user';                -- The MySQL username
 SET @db_user_password = 'db_user_password';  -- The MySQL user's password
 SET @db_host = '%';                      -- The host for user access ('%' allows access from any host)
 
+
+-- Create database embeddings
+CREATE DATABASE IF NOT EXISTS embeddings_db;
+USE embeddings_db;
+call sys.VECTOR_STORE_LOAD('oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', '{"table_name": "embedding_v1"}');
+
 -- Connect as root and create the database if it doesn't exist
 CREATE DATABASE IF NOT EXISTS chat_system;
 
@@ -248,7 +254,100 @@ END //
 
 
 
--- CRUD Operation on chat history
+-- Operation on chat history
+-- Procedure to use in database chatbot from heatwave
+CREATE PROCEDURE chat (
+    IN in_email VARCHAR(255),           -- User's email for validation
+    IN in_token VARCHAR(512),           -- User's token for validation
+    IN in_conversation_id VARCHAR(36),  -- Identifier of the conversation
+    IN in_new_message TEXT,             -- User last prompt
+    OUT out_token_valid BOOLEAN,        -- Output flag indicating if the token is valid
+    OUT out_op_status BOOLEAN           -- Output flag indicating if the chat history was read successfully 
+)
+BEGIN
+    -- Verify the token and email
+    CALL VerifyToken(in_email, in_token, out_token_valid);
+
+    IF NOT out_token_valid THEN
+        SET out_op_status = FALSE;
+        RETURN;
+    END IF;
+
+    -- Handle for data not found
+    DECLARE no_data_found TINYINT DEFAULT 0;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET no_data_found = 1;
+
+    -- Look for chat_option in chat_content
+    SELECT chat_content INTO @chat_options
+    FROM chat_history c
+    JOIN user_credentials u ON c.user_id = u.user_id
+    WHERE u.email = in_email AND c.conversation_id = in_conversation_id;
+
+    -- Return if no Data is Found
+    IF no_data_found = 1 THEN
+        SET out_op_status = FALSE;
+        RETURN
+    END IF;
+
+    -- Call heatwave procedure for chat
+    CALL sys.HEATWAVE_CHAT(in_new_message);
+
+    -- Extract document for chat_options
+    SELECT JSON_UNQUOTE(JSON_EXTRACT(@chat_options,'$.documents'));
+
+    @chat_options = NULL;
+
+    SET out_op_status = TRUE;
+
+END //
+
+-- Procedure to generate title
+CREATE PROCEDURE genText (
+    IN in_email VARCHAR(255),           -- User's email for validation
+    IN in_token VARCHAR(512),           -- User's token for validation
+    IN in_prompt TEXT,             -- Description to generate text
+    OUT out_token_valid BOOLEAN,        -- Output flag indicating if the token is valid
+    OUT out_op_status BOOLEAN           -- Output flag indicating if the chat history was read successfully 
+)
+BEGIN
+    -- Verify the token and email
+    CALL VerifyToken(in_email, in_token, out_token_valid);
+
+    IF NOT out_token_valid THEN
+        SET out_op_status = FALSE;
+        RETURN;
+    END IF;
+
+    SELECT sys.ML_GENERATE(in_prompt, JSON_OBJECT("task", "generation", "model_id", "mistral-7b-instruct-v1", "language", "en"));
+
+    SET out_op_status = TRUE;
+
+END //
+    
+-- Function to transform from heatwave format to UI format
+CREATE FUNCTION toUI( content JSON ) RETURNS JSON
+LANGUAGE JAVASCRIPT AS $$
+    let data = {'chat':[]};
+    let chat_options = JSON.parse(content);
+    let messages = chat_options['chat_history']
+    if (messages == null){
+        return null
+    }
+    for (let message of messages){
+        let user = message['user_message'];
+        if (user != null){
+            data['chat'].push({'role':'user', 'content': user});
+        }
+        let assistant = message['chat_bot_message'];
+        if (assistant != null){
+            data['chat'].push({'role':'assistant', 'content':assistant});
+        }
+    }
+    data['documents'] = chat_options['documents']
+    
+    return JSON.stringify(data);
+$$ //
+
 -- Procedure to read (get) chat history for a user with a valid token and matching email
 CREATE PROCEDURE ReadChatHistory (
     IN in_email VARCHAR(255),     -- User's email for validation
@@ -292,37 +391,45 @@ CREATE PROCEDURE ReadConversation(
     OUT out_op_status BOOLEAN          -- Output flag indicating if the chat history was created successfully
 )
 BEGIN
-    DECLARE conversation_count INT;
-
     -- Verify the token and email
     CALL VerifyToken(in_email, in_token, out_token_valid);
 
-    -- If token and email are valid, check for and return conversation
-    IF out_token_valid THEN
-        -- First, check if the conversation exists
-        SELECT COUNT(*) INTO conversation_count
-        FROM chat_history c
-        JOIN user_credentials u ON c.user_id = u.user_id
-        WHERE u.email = in_email
-        AND c.conversation_id = in_conversation_id;
-
-        -- Set out_op_status based on whether the conversation was found
-        IF conversation_count > 0 THEN
-            -- Conversation found, return it
-            SELECT c.conversation_id, c.title, c.chat_content, c.created_at
-            FROM chat_history c
-            JOIN user_credentials u ON c.user_id = u.user_id
-            WHERE u.email = in_email
-            AND c.conversation_id = in_conversation_id;
-
-            SET out_op_status = TRUE;
-        ELSE
-            -- No conversation found
-            SET out_op_status = FALSE;
-        END IF;
-    ELSE
+    IF NOT out_token_valid THEN
         SET out_op_status = FALSE;
-    END IF;  
+        RETURN;
+    END IF;
+
+    -- Handle for data not found
+    DECLARE no_data_found TINYINT DEFAULT 0;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET no_data_found = 1;
+
+    -- Look for conversation
+    -- Declare holders
+    DECLARE flag_conversation_id VARCHAR(36);
+    DECLARE flag_title VARCHAR(50);
+    DECLARE flag_chat_content JSON;
+    DECLARE created_at TIMESTAMP;
+    
+    -- Retrieve values 
+    SELECT c.conversation_id, c.title, c.chat_content, c.created_at
+    INTO flag_conversation_id, flag_title, flag_chat_content, flag_created_at
+    FROM chat_history c
+    JOIN user_credentials u ON c.user_id = u.user_id
+    WHERE u.email = in_email
+    AND c.conversation_id = in_conversation_id;
+
+    -- Return if no Data is Found
+    IF no_data_found = 1 THEN
+        SET out_op_status = FALSE;
+        RETURN
+    END IF;
+
+    -- Transform content
+    SET flag_chat_content = toUI(flag_chat_content);
+    SELECT flag_conversation_id, flag_title, flag_chat_content, flag_created_at;
+
+    SET out_op_status = TRUE;
+
 END //
 
 -- Procedure to create (add) chat history for a user with a valid token and matching email
@@ -330,7 +437,6 @@ CREATE PROCEDURE CreateConversation (
     IN in_email VARCHAR(255),             -- User's email for validation
     IN in_token VARCHAR(512),             -- User's token for validation
     IN in_title VARCHAR(50),              -- Title for the chat content
-    IN in_chat_content JSON,              -- Chat content in JSON format
     OUT out_conversation_id VARCHAR(36),  -- Output string for the conversation ID
     OUT out_token_valid BOOLEAN,          -- Output flag indicating if the token is valid
     OUT out_op_status BOOLEAN            -- Output flag indicating if the chat history was created successfully
@@ -340,6 +446,17 @@ BEGIN
 
     -- Verify the token and email
     CALL VerifyToken(in_email, in_token, out_token_valid);
+
+    -- Setup Chat Options
+    SET in_chat_content = JSON_OBJECT(
+        "model_options", JSON_OBJECT("model_id", "mistral-7b-instruct-v1"),
+        "tables", JSON_ARRAY(
+            JSON_OBJECT(
+                "table_name", "`embeddings_v1_pdf`",
+                "schema_name", "`embeddings_db`"
+            )
+        )
+    );
 
     -- If token and email are valid, insert the new chat history
     IF out_token_valid THEN

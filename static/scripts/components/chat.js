@@ -16,13 +16,6 @@ export function initChat() {
     // Event listener for starting a new conversation
     document.getElementById('new-conversation-button').addEventListener('click', newConversation);
 
-    // Event listeners for starting and stopping recording
-    document.getElementById('startRecord').addEventListener('click', startRecording);
-    document.getElementById('stopRecord').addEventListener('click', stopRecording);
-
-    document.getElementById("startRecord").style.display = "inline-block";
-    document.getElementById("stopRecord").style.display = "none";
-
 }
 
 /**
@@ -59,7 +52,7 @@ async function handleSendButtonClick() {
  * @param {boolean} isAudio - If true, handle it as an audio message.
  * @param {string} inMessage - Alternative way to use the function to send message
  */
-async function sendChatMessage(isAudio = false, inMessage=null) {
+async function sendChatMessage(inMessage=null) {
     let message;
     if (inMessage){
         message = inMessage
@@ -85,15 +78,9 @@ async function sendChatMessage(isAudio = false, inMessage=null) {
 
         try {
             // Send the message and handle the incoming response
-            const incomingText = await sendMessage(user, token, message, conversationId);
-
-            if (isAudio) {
-                handleAudioResponse(incomingText);  // Read the message aloud if needed
-            }
-
-            updateChatHistoryBar();  // Optionally update chat history after the message
-
-        } catch (error) {
+            const response = await sendMessage(user, token, message, conversationId);
+            updateChatHistoryBar();
+        } catch (error){
             console.error('Error sending chat message:', error);
         }
 
@@ -184,25 +171,6 @@ export function addIncomingMessage(responseText, incomingMessage, incomingText) 
     return [incomingMessage, incomingText];
 }
 
-/**
- * Handles audio responses by reading them aloud and controlling when to send new messages.
- * @param {string} incomingMessage - The message content to read aloud.
- */
-function handleAudioResponse(incomingMessage) {
-    const synth = window.speechSynthesis;
-    const utterance = new SpeechSynthesisUtterance(incomingMessage);
-    utterance.voice = synth.getVoices().find(voice => voice.lang.startsWith('en'));
-
-    // Disable startRecord button while audio is being read
-    document.getElementById('startRecord').disabled = true;
-
-    utterance.onend = function () {
-        // Re-enable the startRecord button once the speech has finished
-        document.getElementById('startRecord').disabled = false;
-    };
-
-    synth.speak(utterance);
-}
 
 /**
  * Updates the chat history bar with the latest conversations.
@@ -256,56 +224,6 @@ function renderChatHistory(chatHistory) {
     });
 }
 
-/**
- * Starts the audio recording process.
- */
-function startRecording() {
-    document.getElementById('startRecord').style.display = 'none';
-    document.getElementById('startRecord').disabled = true;  // Disable startRecord while recording
-    document.getElementById('stopRecord').style.display = 'inline-block';
-    
-
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-            let mediaRecorder = new MediaRecorder(stream);
-            setMediaRecorder(mediaRecorder);
-            mediaRecorder.ondataavailable = event => {
-                const chunks = getAudioChunks();  // Retrieve current audio chunks from state
-                chunks.push(event.data);
-                setAudioChunks(chunks);  // Store updated chunks in state
-            };
-            mediaRecorder.start();
-            document.getElementById("stopRecord").disabled = false;
-        });
-}
-
-/**
- * Stops the audio recording process and sends the recorded audio to the server.
- */
-function stopRecording() {
-    document.getElementById('startRecord').style.display = 'inline-block';
-    document.getElementById('stopRecord').style.display = 'none';
-
-    let mediaRecorder = getMediaRecorder();
-    mediaRecorder.stop();
-    document.getElementById("stopRecord").disabled = true;
-    mediaRecorder.onstop = async () => {
-        const audioChunks = getAudioChunks();  // Retrieve audio chunks from state
-        const transcription = await transcribeAudio(audioChunks);
-
-        if (transcription) {
-            await sendChatMessage(true,transcription);  // Send as audio if transcription is successful
-        } else {
-            console.error('Error processing audio.');
-        }
-
-        // Reset audioChunks after use
-        setAudioChunks([]);
-
-        // Re-enable the startRecord button after sending the audio
-        document.getElementById('startRecord').disabled = false;
-    };
-}
 
 /**
  * Starts a new conversation by clearing the conversation ID and chat window.

@@ -94,50 +94,33 @@ export async function deleteUser(user, token, password) {
  * @param {string} token - The authentication token.
  * @param {string} message - The chat message.
  * @param {string|null} conversationId - The conversation ID (optional).
- * @returns {Promise<string|null>} - The full streamed response text or null if there was an error.
+  * @returns {string|null} - Success message if successful, otherwise null.
  */
 export async function sendMessage(user, token, message, conversationId = null) {
     // Construct the stream URL for EventSource
-    let streamUrl = `/stream-send?user=${encodeURIComponent(user)}&token=${encodeURIComponent(token)}&message=${encodeURIComponent(message)}`;
+    let endpoint = `/stream-send?user=${encodeURIComponent(user)}&token=${encodeURIComponent(token)}&message=${encodeURIComponent(message)}`;
     if (conversationId) {
-        streamUrl += `&conversation_id=${encodeURIComponent(conversationId)}`;
+        endpoint += `&conversation_id=${encodeURIComponent(conversationId)}`;
     }
 
-    return new Promise((resolve, reject) => {
-        // Initialize EventSource for streaming
-        const eventSource = new EventSource(streamUrl);
-        let incomingMessage;
-        let incomingText = '';
+    let incomingMessage;
 
-        // Handle the conversation ID event (for new conversations)
-        eventSource.addEventListener("conversation_id", (event) => {
-            const newConversationId = event.data;
-            if (conversationId == null) {
-                // Set conversationId for the current session (if it's a new conversation)
-                setConversationId(newConversationId);
-                updateChatHistoryBar();
-            }
-        });
+    try {
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+            throw new Error('Failed to send Message.');
+        }
+        const data = await response.json();
+        addIncomingMessage(data.chat_response, incomingMessage, '');
 
-        // Handle chat events (streamed message chunks)
-        eventSource.addEventListener("chat", (event) => {
-            const data = JSON.parse(event.data);
-            if (data.endOfMessage) {
-                // Close the EventSource once the message is fully received
-                eventSource.close();
-                resolve(incomingText);
-            } else {
-                [incomingMessage, incomingText] = addIncomingMessage(data.response, incomingMessage, incomingText);  // Update the UI as chunks arrive
-            }
-        });
+        return data.chat_response, data.documents;  // Assumed response structure
 
-        // Handle errors in the EventSource
-        eventSource.onerror = function () {
-            eventSource.close();
-            reject('EventSource failed.');
-        };
-    });
+    } catch (error) {
+        console.error('Error sending Message:', error);
+        return null;
+    }
 }
+
 
 /**
  * Fetches the chat history for the current user.
@@ -175,7 +158,7 @@ export async function loadConversation(user, token, conversationId) {
             throw new Error('Failed to load conversation.');
         }
         const data = await response.json();
-        return data.conversation;  // Assumed response structure
+        return data.conversation.chat;  // Assumed response structure
     } catch (error) {
         console.error('Error loading conversation:', error);
         return null;
@@ -205,33 +188,3 @@ export async function deleteConversation(user, token, conversationId) {
     }
 }
 
-/**
- * Transcribes the recorded audio using the server API.
- * @param {Blob[]} audioChunks - The recorded audio chunks to transcribe.
- * @returns {string|null} - The transcribed text or null if there was an error.
- */
-export async function transcribeAudio(audioChunks) {
-    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-    const formData = new FormData();
-    formData.append('audioFile', audioBlob);
-
-    const user = getUser();
-    const token = getToken();
-    formData.append('user', user);
-    formData.append('token', token);
-
-    try {
-        const response = await fetch('/upload-audio', {
-            method: 'POST',
-            body: formData
-        });
-        if (!response.ok) {
-            throw new Error('Failed to transcribe audio.');
-        }
-        const data = await response.json();
-        return data.transcription;  // Return the transcribed text
-    } catch (error) {
-        console.error('Error transcribing audio:', error);
-        return null;
-    }
-}
