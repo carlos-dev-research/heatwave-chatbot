@@ -10,19 +10,20 @@ USE embeddings_db;
 
 DO
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.tables 
-        WHERE table_schema = DATABASE()
-        AND table_name = 'embedding_v2'
-    ) THEN
-        -- Create vector store if it doesn't exist
+    DECLARE table_exists INT;
+    
+    SELECT COUNT(*) INTO table_exists 
+    FROM information_schema.tables 
+    WHERE table_schema = DATABASE()
+    AND table_name = 'embedding_v2';
+    
+    IF table_exists = 0 THEN
         call sys.VECTOR_STORE_LOAD(
             'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
             '{"table_name": "embedding_v2"}'
         );
     END IF;
     
-    -- Refresh vector store regardless of whether it was just created
     call sys.VECTOR_STORE_REFRESH(
         'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
         '{"table_name": "embedding_v2"}'
