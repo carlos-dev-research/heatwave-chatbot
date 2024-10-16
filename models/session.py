@@ -249,7 +249,7 @@ class session:
 
         return chat_content
     
-    def chat_db(self, conversation_id:str, new_message:str) -> Tuple[str,List[Dict[str,str]]]:
+    def chat_db(self, conversation_id:str, new_message:str):
         """
         Procedure: chat
         Parameters:
@@ -277,10 +277,11 @@ class session:
             print(chat_response)
             print('\n\n')
             print("Documents")
-            print(results[1][0][0])
-            if results[1][0][0]:
-                print(results[0][1][0])
-                documents = json.loads(results[1][0][0])
+            doc = results[1][0][0]
+            print(type(doc))
+            if doc:
+                print(doc)
+                documents = json.loads(doc)
                 print(documents)
             else:
                 documents = [{}]
