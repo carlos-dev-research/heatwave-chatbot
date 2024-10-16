@@ -275,7 +275,7 @@ class session:
             chat_response = results[0][0][0]
             print(chat_response)
             if results[0][1][0]:
-                documents = json.loads(results[0][0][1])
+                documents = json.loads(results[0][1][0])
                 print(documents)
             else:
                 documents = [{}]
