@@ -349,7 +349,7 @@ proc_label: BEGIN
 
     IF NOT out_token_valid THEN
         SET out_op_status = FALSE;
-        LEAVE proc_label;;
+        LEAVE proc_label;
     END IF;
 
     SELECT sys.ML_GENERATE(in_prompt, JSON_OBJECT("task", "generation", "model_id", "mistral-7b-instruct-v1", "language", "en"));
