@@ -1,5 +1,5 @@
-import { getUser, getToken, getConversationId, setConversationId, setAudioChunks, getAudioChunks, getMediaRecorder, setMediaRecorder } from '../state.js';
-import { sendMessage, getChatHistory, loadConversation, transcribeAudio, deleteConversation } from '../api.js';
+import { getUser, getToken, getConversationId, setConversationId } from '../state.js';
+import { sendMessage, getChatHistory, loadConversation, deleteConversation } from '../api.js';
 /**
  * Chat component that handles sending and receiving chat messages.
  */
