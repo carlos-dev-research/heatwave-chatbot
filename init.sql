@@ -321,6 +321,13 @@ proc_label: BEGIN
     -- Extract document for chat_options
     SELECT JSON_UNQUOTE(JSON_EXTRACT(@chat_options,'$.documents'));
 
+    -- Save content
+    UPDATE chat_history c
+    JOIN user_credentials u ON c.user_id = u.user_id
+    SET c.chat_content = @chat_options
+    WHERE u.email = in_email AND c.conversation_id = in_conversation_id;
+
+
     SET @chat_options = NULL;
 
     SET out_op_status = TRUE;
@@ -354,10 +361,11 @@ END //
 CREATE FUNCTION toUI( content JSON ) RETURNS JSON
 LANGUAGE JAVASCRIPT AS $$
     let data = {'chat':[]};
-    let chat_options = JSON.parse(content);
+    let chat_options = content;
     let messages = chat_options['chat_history']
     if (messages == null){
-        return null
+        data = {'chat':[]}
+        return JSON.stringify(data);
     }
     for (let message of messages){
         let user = message['user_message'];
