@@ -8,27 +8,31 @@ SET @db_host = '%';                      -- The host for user access ('%' allows
 CREATE DATABASE IF NOT EXISTS embeddings_db;
 USE embeddings_db;
 
-DO
+DECLARE
+    table_exists NUMBER;
 BEGIN
-    DECLARE table_exists INT;
-    
+    -- Check if the table 'embedding_v2' exists in the current schema
     SELECT COUNT(*) INTO table_exists 
-    FROM information_schema.tables 
-    WHERE table_schema = DATABASE()
-    AND table_name = 'embedding_v2';
-    
+    FROM USER_TABLES 
+    WHERE table_name = 'EMBEDDING_V2';  -- Use uppercase for table names in Oracle
+
+    -- If the table does not exist, load the vector store
     IF table_exists = 0 THEN
-        call sys.VECTOR_STORE_LOAD(
+        CALL sys.VECTOR_STORE_LOAD(
             'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
             '{"table_name": "embedding_v2"}'
         );
+        DBMS_OUTPUT.PUT_LINE('Vector store loaded as the table did not exist.');
     END IF;
     
-    call sys.VECTOR_STORE_REFRESH(
+    -- Refresh the vector store
+    CALL sys.VECTOR_STORE_REFRESH(
         'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
         '{"table_name": "embedding_v2"}'
     );
+    DBMS_OUTPUT.PUT_LINE('Vector store refreshed.');
 END;
+/
 
 -- Connect as root and create the database if it doesn't exist
 CREATE DATABASE IF NOT EXISTS chat_system;
