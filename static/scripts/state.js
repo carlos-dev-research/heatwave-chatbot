@@ -61,34 +61,3 @@ export function getConversationId() {
 export function setConversationId(id) {
     conversationId = id;
 }
-
-/**
- * Get the audio chunks from the state.
- * @returns {Blob[]} - The current audio chunks array.
- */
-export function getAudioChunks() {
-    return audioChunks;
-}
-
-/**
- * Set the audio chunks in the state.
- * @param {Blob[]} chunks - The audio chunks to set.
- */
-export function setAudioChunks(chunks) {
-    audioChunks = chunks;
-}
-
-/**
-* Get Media Recorder Object
-*@param {MediaRecorder}
-*/
-export function getMediaRecorder(){
-    return mediaRecorder;
-}
-
-/**
- * Set Media Recorder Object
- * @param {MediaRecorder}
- */export function setMediaRecorder(newMediaRecorder){
-    mediaRecorder = newMediaRecorder;
- }

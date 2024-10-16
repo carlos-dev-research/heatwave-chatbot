@@ -98,7 +98,7 @@ export async function deleteUser(user, token, password) {
  */
 export async function sendMessage(user, token, message, conversationId = null) {
     // Construct the stream URL for EventSource
-    let endpoint = `/stream-send?user=${encodeURIComponent(user)}&token=${encodeURIComponent(token)}&message=${encodeURIComponent(message)}`;
+    let endpoint = `/chat?user=${encodeURIComponent(user)}&token=${encodeURIComponent(token)}&message=${encodeURIComponent(message)}`;
     if (conversationId) {
         endpoint += `&conversation_id=${encodeURIComponent(conversationId)}`;
     }
