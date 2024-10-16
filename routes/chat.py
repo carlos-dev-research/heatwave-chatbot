@@ -118,6 +118,7 @@ def chat():
             """
             prompt = template.format(message)
             title= ss.gen_text(prompt)
+            print(title)
             conversation_id = ss.create_conversation(title)
         else:
             chat_response, documents = ss.chat_db(conversation_id,message)
