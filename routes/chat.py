@@ -117,6 +117,7 @@ def chat():
             Headline: 
             """
             prompt = template.format(message)
+            print(prompt)
             title= ss.gen_text(prompt)
             print(title)
             conversation_id = ss.create_conversation(title)
