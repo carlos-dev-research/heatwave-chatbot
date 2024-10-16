@@ -264,13 +264,13 @@ CREATE PROCEDURE chat (
     OUT out_token_valid BOOLEAN,        -- Output flag indicating if the token is valid
     OUT out_op_status BOOLEAN           -- Output flag indicating if the chat history was read successfully 
 )
-BEGIN
+proc_label: BEGIN
     -- Verify the token and email
     CALL VerifyToken(in_email, in_token, out_token_valid);
 
     IF NOT out_token_valid THEN
         SET out_op_status = FALSE;
-        RETURN;
+        LEAVE proc_label;
     END IF;
 
     -- Handle for data not found
@@ -286,7 +286,7 @@ BEGIN
     -- Return if no Data is Found
     IF no_data_found = 1 THEN
         SET out_op_status = FALSE;
-        RETURN
+        LEAVE proc_label;
     END IF;
 
     -- Call heatwave procedure for chat
@@ -309,13 +309,13 @@ CREATE PROCEDURE genText (
     OUT out_token_valid BOOLEAN,        -- Output flag indicating if the token is valid
     OUT out_op_status BOOLEAN           -- Output flag indicating if the chat history was read successfully 
 )
-BEGIN
+proc_label: BEGIN
     -- Verify the token and email
     CALL VerifyToken(in_email, in_token, out_token_valid);
 
     IF NOT out_token_valid THEN
         SET out_op_status = FALSE;
-        RETURN;
+        LEAVE proc_label;;
     END IF;
 
     SELECT sys.ML_GENERATE(in_prompt, JSON_OBJECT("task", "generation", "model_id", "mistral-7b-instruct-v1", "language", "en"));
@@ -390,13 +390,13 @@ CREATE PROCEDURE ReadConversation(
     OUT out_token_valid BOOLEAN,            -- Output flag indicating if the token is valid
     OUT out_op_status BOOLEAN          -- Output flag indicating if the chat history was created successfully
 )
-BEGIN
+proc_label: BEGIN
     -- Verify the token and email
     CALL VerifyToken(in_email, in_token, out_token_valid);
 
     IF NOT out_token_valid THEN
         SET out_op_status = FALSE;
-        RETURN;
+        LEAVE proc_label;
     END IF;
 
     -- Handle for data not found
@@ -421,7 +421,7 @@ BEGIN
     -- Return if no Data is Found
     IF no_data_found = 1 THEN
         SET out_op_status = FALSE;
-        RETURN
+        LEAVE proc_label;
     END IF;
 
     -- Transform content
