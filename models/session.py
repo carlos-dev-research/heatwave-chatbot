@@ -271,7 +271,10 @@ class session:
         # Unpack the chat history and convert form json to dictionary
         try:
             chat_response = results[0][0][0]
-            documents = json.loads(results[0][0][1])
+            if results[0][0][1]:
+                documents = json.loads(results[0][0][1])
+            else:
+                documents = [{}]
         except:
             raise ValueError("Invalid Data")
 

@@ -2,7 +2,7 @@
 CREATE DATABASE IF NOT EXISTS embeddings_db;
 USE embeddings_db;
 
-DELIMITER $$
+DELIMITER //
 
 CREATE PROCEDURE load_or_refresh_vector_store()
 BEGIN
@@ -12,30 +12,28 @@ BEGIN
     SELECT COUNT(*) INTO table_exists 
     FROM information_schema.tables 
     WHERE table_schema = DATABASE() 
-    AND table_name = 'embedding_v2';
+    AND table_name = 'embedding_v2_pdf';
 
     -- If the table does not exist, load the vector store
-    IF table_exists = 0 THEN
+    IF table_exists > 0 THEN
+        DROP TABLE embedding_v2_pdf;
+        CALL sys.VECTOR_STORE_LOAD(
+            'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
+            '{"table_name": "embedding_v2"}'
+        );
+        SELECT 'Vector store refreshed' AS status;
+    ELSE
         CALL sys.VECTOR_STORE_LOAD(
             'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
             '{"table_name": "embedding_v2"}'
         );
         SELECT 'Vector store loaded as the table did not exist' AS status;
-    ELSE
-        SELECT 'Table exists, no need to load vector store' AS status;
     END IF;
-
-    -- Refresh the vector store
-    CALL sys.VECTOR_STORE_REFRESH(
-        'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
-        '{"table_name": "embedding_v2"}'
-    );
-    SELECT 'Vector store refreshed' AS status;
-END$$
+END //
 
 DELIMITER ;
 
-
+CALL load_or_refresh_vector_store();
 
 -- Connect as root and create the database if it doesn't exist
 CREATE DATABASE IF NOT EXISTS chat_system;
