@@ -481,7 +481,7 @@ BEGIN
         "model_options", JSON_OBJECT("model_id", "mistral-7b-instruct-v1"),
         "tables", JSON_ARRAY(
             JSON_OBJECT(
-                "table_name", "`embeddings_v2_pdf`",
+                "table_name", "`embedding_v2_pdf`",
                 "schema_name", "`embeddings_db`"
             )
         )

@@ -261,6 +261,8 @@ class session:
             OUT out_op_status BOOLEAN           -- Output flag indicating if the chat history was read successfully 
         """
         params, results = self.mydb.call_proc("chat",[self.user, self.token, conversation_id, new_message, None, None])
+        print(params)
+        print(results)
         token_valid = params[-2]
         op_status = params[-1]
         if not token_valid:
