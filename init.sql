@@ -329,7 +329,7 @@ proc_label: BEGIN
     -- Extract document for chat_options
     SELECT JSON_UNQUOTE(JSON_EXTRACT(@chat_options,'$.documents'));
 
-    @chat_options = NULL;
+    SET @chat_options = NULL;
 
     SET out_op_status = TRUE;
 
