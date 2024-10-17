@@ -129,7 +129,7 @@ export function addOutgoingMessage(message) {
  * @param {string} incomingText - The accumulated incoming message text.
  * @returns {[Element, string]} - Updated incoming message element and accumulated text.
  */
-export function addIncomingMessage(responseText, incomingMessage, incomingText) {
+export function addIncomingMessage(responseText, incomingMessage, incomingText, references) {
     const messages = document.getElementById('messages');
     incomingText += responseText;
 
@@ -165,6 +165,15 @@ export function addIncomingMessage(responseText, incomingMessage, incomingText) 
     } else {
         const responseContent = incomingMessage.querySelector('.response-content');
         responseContent.innerHTML = cleanOutput(incomingText);
+    }
+
+    if (references){
+        const references_tab = document.getElementById('references');
+        let reference_text = ""
+        for(let reference of references){
+            reference_text += `- ${reference.id}\n\t\tSegement: ${reference.segment}\n\n`
+        }
+        references_tab.innerHTML = cleanOutput(reference_text)
     }
 
     messages.scrollTop = messages.scrollHeight;

@@ -27,7 +27,11 @@ header {
 #header-title {
     font-size: 30px;
 }
-  
+ 
+#references-title {
+    font-size: 20px;
+}
+
 #user-btn {
     background-color: white;
     color: #2A2A2A;
@@ -50,6 +54,15 @@ header {
 
 /* Styling for the chat history */
 #chat-history {
+    overflow-y: auto; /* Make the div scrollable vertically */
+    border: 2px solid  #212529; /* Add a border to the div */
+    padding: 10px;
+    background-color: #212529;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#chat-references {
+    height: 40px;
     overflow-y: auto; /* Make the div scrollable vertically */
     border: 2px solid  #212529; /* Add a border to the div */
     padding: 10px;
