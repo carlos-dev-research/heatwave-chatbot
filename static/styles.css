@@ -30,7 +30,6 @@ header {
  
 #references-title {
     font-size: 20px;
-    color: white;
 }
 
 #user-btn {
@@ -63,12 +62,13 @@ header {
 }
 
 #chat-references {
-    height: 40px;
+    height: 80px;
     overflow-y: auto; /* Make the div scrollable vertically */
     border: 2px solid  #212529; /* Add a border to the div */
     padding: 10px;
     background-color: #212529;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: white;
 }
 
 .list-item {
