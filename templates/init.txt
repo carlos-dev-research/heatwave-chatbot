@@ -21,14 +21,14 @@ BEGIN
     IF table_exists > 0 THEN
         DROP TABLE embedding_v2_pdf;
         CALL sys.VECTOR_STORE_LOAD(
-            'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
-            '{"table_name": "embedding_v2"}'
+            {bucket}, 
+            '{{"table_name": "embedding_v2"}}'
         );
         SELECT 'Vector store refreshed' AS status;
     ELSE
         CALL sys.VECTOR_STORE_LOAD(
-            'oci://bucket-vector-search@idumxjh5bpsr/bucket-folder-heatwave/', 
-            '{"table_name": "embedding_v2"}'
+            {bucket}, 
+            '{{"table_name": "embedding_v2"}}'
         );
         SELECT 'Vector store loaded as the table did not exist' AS status;
     END IF;
@@ -363,23 +363,23 @@ END //
 -- Function to transform from heatwave format to UI format
 CREATE FUNCTION toUI( content JSON ) RETURNS JSON
 LANGUAGE JAVASCRIPT AS $$
-    let data = {'chat':[]};
+    let data = {{'chat':[]}};
     let chat_options = content;
     let messages = chat_options['chat_history']
-    if (messages == null){
-        data = {'chat':[]};
+    if (messages == null){{
+        data = {{'chat':[]}};
         return JSON.stringify(data);
-    }
-    for (let message of messages){
+    }}
+    for (let message of messages){{
         let user = message['user_message'];
-        if (user != null){
-            data['chat'].push({'role':'user', 'content': user});
-        }
+        if (user != null){{
+            data['chat'].push({{'role':'user', 'content': user}});
+        }}
         let assistant = message['chat_bot_message'];
-        if (assistant != null){
-            data['chat'].push({'role':'assistant', 'content':assistant});
-        }
-    }
+        if (assistant != null){{
+            data['chat'].push({{'role':'assistant', 'content':assistant}});
+        }}
+    }}
     data['documents'] = chat_options['documents']
     
     return JSON.stringify(data);

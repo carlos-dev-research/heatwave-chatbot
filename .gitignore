@@ -1,8 +1,3 @@
-# Ignore files in the data directory documents to be used in RAG
-data/*
-!data/.gitkeep
-!data/keep.txt
-
 # Ignore log file
 *.log
 
@@ -13,3 +8,7 @@ Thumbs.db
 #Ignore cache
 .pytest_cache
 __pychache__/
+
+# Ignore config
+./config/config.json
+./init.sql
