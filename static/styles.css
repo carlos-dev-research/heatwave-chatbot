@@ -63,7 +63,8 @@ header {
 
 #chat-references {
     flex-shrink: 0;
-    height: 80px;
+    flex-grow: 1;
+    height: 150px;
     overflow-y: auto; /* Make the div scrollable vertically */
     border: 2px solid  #212529; /* Add a border to the div */
     padding: 10px;
