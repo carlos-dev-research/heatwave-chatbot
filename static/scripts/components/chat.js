@@ -239,6 +239,7 @@ function renderChatHistory(chatHistory) {
  * Starts a new conversation by clearing the conversation ID and chat window.
  */
 function newConversation() {
+    document.getElementById('references').innerHTML="";
     setConversationId(null);  // Reset conversation ID in state
     document.getElementById('messages').innerHTML = '';  // Clear chat window
 }
