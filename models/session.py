@@ -261,8 +261,6 @@ class session:
             OUT out_op_status BOOLEAN           -- Output flag indicating if the chat history was read successfully 
         """
         params, results = self.mydb.call_proc("chat",[self.user, self.token, conversation_id, new_message, None, None])
-        print(results)
-        print('\n\n')
         token_valid = params[-2]
         op_status = params[-1]
         if not token_valid:
@@ -273,10 +271,6 @@ class session:
         # Unpack the chat history and convert form json to dictionary
         try:
             chat_response = results[0][0][0]
-            print("Response:")
-            print(chat_response)
-            print('\n\n')
-            print("Documents")
             docs_json = results[1][0][0]
             if docs_json:
                 documents = json.loads(docs_json)

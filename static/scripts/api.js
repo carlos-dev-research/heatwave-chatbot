@@ -119,8 +119,7 @@ export async function sendMessage(user, token, message, conversationId = null) {
             else if (conversationId != data.conversation_id){
                 return null
             }
-            console.log(data.documents)
-            addIncomingMessage(data.chat_response, incomingMessage, '');
+            addIncomingMessage(data.chat_response, incomingMessage, '',data.documents);
             return data.chat_response, data.documents;
             }
             
