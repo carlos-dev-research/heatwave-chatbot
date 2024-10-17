@@ -8,6 +8,9 @@ CREATE PROCEDURE load_or_refresh_vector_store()
 BEGIN
     DECLARE table_exists INT DEFAULT 0;
 
+    -- Initialize Task Management Schema
+    SELECT mysql_task_management_ensure_schema();
+
     -- Check if the table exists
     SELECT COUNT(*) INTO table_exists 
     FROM information_schema.tables 
