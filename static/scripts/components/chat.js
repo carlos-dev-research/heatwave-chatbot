@@ -168,6 +168,7 @@ export function addIncomingMessage(responseText, incomingMessage, incomingText, 
     }
 
     if (references){
+        console.log(references)
         const references_tab = document.getElementById('references');
         let reference_text = ""
         for(let reference of references){
@@ -255,6 +256,7 @@ async function handleDeleteConversation(conversationId) {
         await deleteConversation(user, token, conversationId);  // Call API to delete conversation
         if (conversationId == getConversationId()){
             newConversation();
+            document.getElementById('references').innerHTML="";
         }
         updateChatHistoryBar();  // Refresh chat history after deletion
     }
@@ -265,6 +267,7 @@ async function handleDeleteConversation(conversationId) {
  * @param {string} conversationId - The ID of the conversation to display.
  */
 async function handleDisplayConversation(conversationId) {
+    document.getElementById('references').innerHTML="";
     const user = getUser();
     const token = getToken();
 
