@@ -17,7 +17,7 @@ ssh -i ssh_private.key <compute_instance_public_ip>
 2. Once in the compute instance, clone the repository and install dependencies
 ```bash
 git clone https://github.com/carlos-dev-research/heatwave-chatbot.git
-cd heatwave-chat
+cd heatwave-chatbot
 sudo apt update
 sudo apt install python3 python3-pip mysql-client-core-8.0
 pip install -r requirements.txt
@@ -30,18 +30,19 @@ python3 setup.py --db-host <host> --db-user <user> --db-password <password> --bu
 mysql -h <host> -u <user> -p < init.sql
 ```
 
-3. If using ubuntu image, you need to open ports
+3. If using ubuntu image, you need to open ports, and check the port has been enabled
 ```bash
 sudo ufw enable
 sudo ufw allow 5000/tcp
+sudo ufw status verbose
 ```
 
 4. Reboot instance and connect again
 
 5. Initialize the server:
 ```bash
-cd heatwave-chat
-python run.py
+cd heatwave-chatbot
+python3 run.py
 ```
 
 6. The server will be available on the public IP assigned by OCI.
