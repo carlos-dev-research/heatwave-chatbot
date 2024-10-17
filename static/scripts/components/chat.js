@@ -171,7 +171,7 @@ export function addIncomingMessage(responseText, incomingMessage, incomingText, 
         const references_tab = document.getElementById('references');
         let reference_text = ""
         for(let reference of references){
-            reference_text += `**Reference:** ${reference.id}\n**Segement:**\n*${reference.segment}*\n\n\n`
+            reference_text += `**Reference:** ${reference.id}  **Segement:**\n*${reference.segment}*      `
         }
         references_tab.innerHTML = cleanOutput(reference_text)
     }
