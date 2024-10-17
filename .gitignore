@@ -8,6 +8,7 @@ Thumbs.db
 #Ignore cache
 .pytest_cache
 __pychache__/
+*.pyc
 
 # Ignore config
 /config/config.json
