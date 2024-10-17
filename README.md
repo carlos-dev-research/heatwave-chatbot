@@ -21,6 +21,9 @@ cd heatwave-chat
 sudo apt update
 sudo apt install python3 python3-pip mysql-client-core-8.0
 pip install -r requirements.txt
+
+# Note you can see an example of using the python cli tool in setup.sh
+# The bucket variale is of format 'oci://BucketName@Namespace/Path/' go to bucket and format the proper string
 python3 setup.py --db-host <host> --db-user <user> --db-password <password> --bucket <bucket>
 
 # Note for the database to initialize the vector store it take some minutes
